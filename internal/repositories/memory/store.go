@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/iexcalibur/backend/internal/models"
 )
 
-type MemoryStore struct {
+type Store struct {
 	mu         sync.RWMutex
 	products   map[string]models.Product
 	carts      map[string]models.Cart
@@ -17,8 +17,8 @@ type MemoryStore struct {
 	promoCodes map[string]models.PromoCode
 }
 
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
+func NewStore() *Store {
+	return &Store{
 		products:   make(map[string]models.Product),
 		carts:      make(map[string]models.Cart),
 		orders:     make(map[string]models.Order),
@@ -27,13 +27,13 @@ func NewMemoryStore() *MemoryStore {
 }
 
 // Product methods
-func (s *MemoryStore) AddTestProduct(product models.Product) {
+func (s *Store) AddProduct(product models.Product) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.products[product.ID] = product
 }
 
-func (s *MemoryStore) GetAll() []models.Product {
+func (s *Store) GetAllProducts() []models.Product {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	products := make([]models.Product, 0, len(s.products))
@@ -44,7 +44,7 @@ func (s *MemoryStore) GetAll() []models.Product {
 }
 
 // Cart methods
-func (s *MemoryStore) GetCart(userID string) (*models.Cart, error) {
+func (s *Store) GetCart(userID string) (*models.Cart, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -56,14 +56,13 @@ func (s *MemoryStore) GetCart(userID string) (*models.Cart, error) {
 	return nil, fmt.Errorf("cart not found for user: %s", userID)
 }
 
-func (s *MemoryStore) AddToCart(userID string, item models.CartItem) error {
+func (s *Store) AddToCart(userID string, item models.CartItem) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	var cart models.Cart
 	found := false
 
-	// Find existing cart for user
 	for _, c := range s.carts {
 		if c.UserID == userID {
 			cart = c
@@ -72,7 +71,6 @@ func (s *MemoryStore) AddToCart(userID string, item models.CartItem) error {
 		}
 	}
 
-	// Create new cart if not found
 	if !found {
 		cart = models.Cart{
 			ID:     uuid.New().String(),
@@ -81,7 +79,6 @@ func (s *MemoryStore) AddToCart(userID string, item models.CartItem) error {
 		}
 	}
 
-	// Update or add item
 	itemFound := false
 	for i, existingItem := range cart.Items {
 		if existingItem.ProductID == item.ProductID {
@@ -95,7 +92,6 @@ func (s *MemoryStore) AddToCart(userID string, item models.CartItem) error {
 		cart.Items = append(cart.Items, item)
 	}
 
-	// Update total
 	cart.Total = 0
 	for _, item := range cart.Items {
 		cart.Total += item.Price * float64(item.Quantity)
@@ -106,7 +102,7 @@ func (s *MemoryStore) AddToCart(userID string, item models.CartItem) error {
 }
 
 // Order methods
-func (s *MemoryStore) CreateOrder(order models.Order) error {
+func (s *Store) CreateOrder(order models.Order) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -116,7 +112,7 @@ func (s *MemoryStore) CreateOrder(order models.Order) error {
 	return nil
 }
 
-func (s *MemoryStore) GetUserOrders(userID string) []models.Order {
+func (s *Store) GetUserOrders(userID string) []models.Order {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -130,7 +126,7 @@ func (s *MemoryStore) GetUserOrders(userID string) []models.Order {
 }
 
 // PromoCode methods
-func (s *MemoryStore) CreatePromoCode(promoCode models.PromoCode) error {
+func (s *Store) CreatePromoCode(promoCode models.PromoCode) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -140,7 +136,7 @@ func (s *MemoryStore) CreatePromoCode(promoCode models.PromoCode) error {
 	return nil
 }
 
-func (s *MemoryStore) GetPromoCode(code string) (*models.PromoCode, error) {
+func (s *Store) GetPromoCode(code string) (*models.PromoCode, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

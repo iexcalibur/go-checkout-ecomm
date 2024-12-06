@@ -1,16 +1,15 @@
 package config
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	router *mux.Router
-	port   string
+	port    string
+	router  *mux.Router
+	handler http.Handler
 }
 
 func NewServer(port string) *Server {
@@ -24,7 +23,13 @@ func (s *Server) Router() *mux.Router {
 	return s.router
 }
 
+func (s *Server) SetHandler(h http.Handler) {
+	s.handler = h
+}
+
 func (s *Server) Start() error {
-	log.Printf("Server starting on port %s...", s.port)
-	return http.ListenAndServe(fmt.Sprintf(":%s", s.port), s.router)
+	if s.handler == nil {
+		s.handler = s.router
+	}
+	return http.ListenAndServe(":"+s.port, s.handler)
 }

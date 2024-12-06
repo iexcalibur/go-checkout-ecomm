@@ -4,41 +4,45 @@ import (
 	"log"
 
 	"github.com/iexcalibur/backend/internal/config"
-	"github.com/iexcalibur/backend/internal/core/services"
 	"github.com/iexcalibur/backend/internal/data"
 	"github.com/iexcalibur/backend/internal/handlers"
-	"github.com/iexcalibur/backend/internal/repositories/memory"
 	"github.com/iexcalibur/backend/internal/routes"
 	"github.com/iexcalibur/backend/internal/storage"
+	"github.com/rs/cors"
 )
 
 func main() {
 	// Initialize server
 	server := config.NewServer("8080")
 
-	// Initialize repositories
-	orderRepo := memory.NewMemoryOrderRepository()
-	discountRepo := memory.NewMemoryDiscountRepository()
-
 	// Initialize storage and sample data
 	store := storage.NewMemoryStore()
 	data.InitializeSampleProducts(store)
 
-	// Initialize services
-	adminService := services.NewAdminService(orderRepo, discountRepo)
-
 	// Initialize handlers
 	productHandler := handlers.NewProductHandler(store)
 	cartHandler := handlers.NewCartHandler(store)
-	adminHandler := handlers.NewAdminHandler(adminService)
+	orderHandler := handlers.NewOrderHandler(store)
+	promoHandler := handlers.NewPromoHandler(store)
 
 	// Setup routes
 	routes.SetupRoutes(
 		server.Router(),
 		productHandler,
 		cartHandler,
-		adminHandler,
+		orderHandler,
+		promoHandler,
 	)
+
+	// Add CORS middleware
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
+	})
+
+	// Use CORS handler in server
+	server.SetHandler(c.Handler(server.Router()))
 
 	// Start server
 	if err := server.Start(); err != nil {

@@ -1,24 +1,27 @@
 package ports
 
-import "github.com/iexcalibur/backend/internal/core/domain"
+import "github.com/iexcalibur/backend/internal/models"
 
+// CartRepository defines the interface for cart operations
 type CartRepository interface {
-	AddItem(userID string, item domain.CartItem) error
-	GetCart(userID string) (*domain.Cart, error)
-	RemoveItem(userID, itemID string) error
-	ClearCart(userID string) error
-	UpdateItemQuantity(userID, itemID string, quantity int) error
+	GetCart(userID string) (*models.Cart, error)
+	AddToCart(userID string, item models.CartItem) error
 }
 
+// OrderRepository defines the interface for order operations
 type OrderRepository interface {
-	Create(order domain.Order) error
-	GetOrderCount() int
-	GetOrderStats() domain.OrderStats
+	CreateOrder(order models.Order) error
+	GetUserOrders(userID string) []models.Order
 }
 
-type DiscountRepository interface {
-	Create(discount domain.Discount) error
-	GetByCode(code string) (*domain.Discount, error)
-	MarkAsUsed(code string) error
-	GetAll() []domain.Discount
+// PromoCodeRepository defines the interface for promo code operations
+type PromoCodeRepository interface {
+	CreatePromoCode(promoCode models.PromoCode) error
+	GetPromoCode(code string) (*models.PromoCode, error)
+}
+
+// ProductRepository defines the interface for product operations
+type ProductRepository interface {
+	GetAll() []models.Product
+	AddTestProduct(product models.Product)
 }

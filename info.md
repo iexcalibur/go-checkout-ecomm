@@ -5,15 +5,33 @@ bash
 backend/
 ├── cmd/
 │ └── api/ # Application entry point
+│ └── main.go
 ├── internal/
 │ ├── config/ # Server configuration
-│ ├── core/ # Core business logic
+│ │ └── server.go
+│ ├── core/
+│ │ └── ports/ # Interface definitions
+│ │ └── repositories.go
 │ ├── data/ # Sample data
+│ │ └── sample_products.go
 │ ├── handlers/ # HTTP handlers
+│ │ ├── cart_handler.go
+│ │ ├── order_handler.go
+│ │ ├── product_handler.go
+│ │ └── promo_handler.go
 │ ├── models/ # Data models
-│ ├── repositories/ # Data storage interfaces
-│ ├── routes/ # Route definitions
-│ └── storage/ # Storage implementation
+│ │ ├── cart.go
+│ │ ├── order.go
+│ │ ├── product.go
+│ │ └── promo.go
+│ ├── repositories/ # Data storage implementations
+│ │ └── memory/ # In-memory storage
+│ │ └── store.go
+│ └── routes/ # Route definitions
+│ └── routes.go
+├── go.mod
+├── go.sum
+└── README.md
 
 
 ## Running the Application
@@ -26,15 +44,15 @@ go run cmd/api/main.go
 
 The server will start on port 8080.
 
-## Testing API Endpoints
+## API Documentation
 
 ### Products API
 
-1. Get All Products
+#### Get All Products
+Products
 bash
-curl http://localhost:8080/api/products
-
-Example Response:
+GET /api/products
+Response:
 json
 [
 {
@@ -47,132 +65,142 @@ json
 "image_url": "https://via.placeholder.com/250",
 "description": "Highly rated for durability and style.",
 "category": "Clothing"
-},
-...
+}
 ]
-
+Cart
 
 ### Cart API
 
-1. Add to Cart
+#### Get Cart
 bash
-curl -X POST http://localhost:8080/api/cart/add \
--H "Content-Type: application/json" \
--d '{
+GET /api/cart?userId=user123
+Response:
+json
+{
+"id": "cart123",
+"user_id": "user123",
+"items": [
+{
+"product_id": "1",
+"name": "Spy x Family Tshirt",
+"price": 26,
+"quantity": 2,
+"image_url": "https://via.placeholder.com/250"
+}
+],
+"total": 52,
+"discount": 0
+}
+
+#### Add to Cart
+bash
+POST /api/cart/add
+Content-Type: application/json
+{
 "userId": "user123",
-"itemId": "1",
-"quantity": 2
-}'
+"productId": "1",
+"quantity": 2,
+"price": 26,
+"name": "Spy x Family Tshirt",
+"imageUrl": "https://via.placeholder.com/250"
+}
 
-2. View Cart
-bash
-curl http://localhost:8080/api/cart?userId=user123
 
-3. Update Cart Item Quantity
+#### Update Cart Item
 bash
-curl -X PUT http://localhost:8080/api/cart/1/quantity \
--H "Content-Type: application/json" \
--d '{
+PUT /api/cart/{productId}
+Content-Type: application/json
+{
 "userId": "user123",
 "quantity": 3
-}'
+}
 
 
-4. Remove from Cart
+#### Remove from Cart
 bash
-curl -X DELETE http://localhost:8080/api/cart/1?userId=user123
+DELETE /api/cart/{productId}?userId=user123
 
 
-5. Checkout
-bash
-curl -X POST http://localhost:8080/api/cart/checkout \
--H "Content-Type: application/json" \
--d '{
+#### Checkout
+POST /api/cart/checkout
+Content-Type: application/json
+{
 "userId": "user123",
-"discountCode": "DISC10"
-}'
+"discountCode": "PROMO10"
+}
 
 
-### Admin API
+### Order API
 
-1. Get Active Discount
-
-Discount
+#### Get User Orders
 bash
-curl http://localhost:8080/api/admin/discount/active
+GET /api/orders?userId=user123
+Response:
+json
+[
+{
+"id": "order123",
+"user_id": "user123",
+"items": [
+{
+"product_id": "1",
+"name": "Spy x Family Tshirt",
+"price": 26,
+"quantity": 2
+}
+],
+"total_amount": 52,
+"discount_code": "PROMO10",
+"discount_amount": 5.2,
+"created_at": "2024-03-15T14:30:00Z"
+}
+]
 
 
-2. Generate Discount Code
+### Promo Code API
+
+#### Generate Promo Code
 bash
-curl -X POST http://localhost:8080/api/admin/discount
+POST /api/admin/discount
+Response:
+json
+{
+"id": "promo123",
+"code": "PROMO10",
+"discount_rate": 10.0,
+"used": false,
+"generated_at": "2024-03-15T14:30:00Z"
+}
 
 
-3. Get Statistics
+#### Get Active Promo Code
 bash
-curl http://localhost:8080/api/admin/stats
-
-## Running Tests
-
-1. Run all tests:
-bash
-go test ./...
-
-
-2. Run specific test package:
-bash
-Test handlers
-go test ./internal/handlers -v
-Test storage
-go test ./internal/storage -v
-Test services
-go test ./internal/core/services -v
+GET /api/admin/discount/active
+Response:
+json
+{
+"id": "promo123",
+"code": "PROMO10",
+"discount_rate": 10.0,
+"used": false,
+"generated_at": "2024-03-15T14:30:00Z"
+}
 
 
+## Error Responses
+All endpoints may return the following error responses:
 
-3. Run with coverage:
-bash
-go test ./... -cover
-
-
-4. Generate coverage report:
-bash
-go test ./... -coverprofile=coverage.out
-go tool cover -html=coverage.out
+json
+{
+"error": "Error message description"
+}
 
 
-## Common Test Cases
-
-### Products
-- Verify all products are returned
-- Check product details are correct
-- Verify category filtering works
-
-### Cart
-- Add items to cart
-- Update quantities
-- Remove items
-- Apply discount codes
-- Complete checkout process
-
-### Admin
-- Generate discount codes
-- View active discounts
-- Check order statistics
-
-## Troubleshooting
-
-1. Server won't start:
-   - Check port 8080 is available
-   - Verify all dependencies are installed
-
-2. API returns 404:
-   - Verify the endpoint URL is correct
-   - Check route registration in routes.go
-
-3. Tests failing:
-   - Run with -v flag for detailed output
-   - Check test data setup
-   - Verify mock expectations
+Common HTTP Status Codes:
+- 200: Success
+- 400: Bad Request
+- 404: Not Found
+- 500: Internal Server Error
 
 ## Development Tips
 
@@ -182,26 +210,22 @@ go tool cover -html=coverage.out
 4. Keep test coverage high
 5. Follow Go best practices and conventions
 
+## Testing
 
-# 1. First, check if there's any active discount
-curl http://localhost:8080/api/admin/discount/active
+Run all tests:
+bash
+go test ./...
 
-# 2. Generate a new discount code
-curl -X POST http://localhost:8080/api/admin/discount
 
-# 3. Verify the new code is now active
-curl http://localhost:8080/api/admin/discount/active
+Generate coverage report:
+bash
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
 
-# 4. Try to generate another code (should fail because one is active)
-curl -X POST http://localhost:8080/api/admin/discount
+```
 
-# 5. Use the code in a checkout
-curl -X POST http://localhost:8080/api/cart/checkout \
--H "Content-Type: application/json" \
--d '{
-    "userId": "user123",
-    "discountCode": "DISC123"
-}'
-
-# 6. Check that the code is now marked as used
-curl http://localhost:8080/api/admin/discount/active
+This documentation now includes:
+1. Updated project structure
+2. Detailed API endpoints with request/response examples
+3. Error handling information
+4. Development and testing guidelines

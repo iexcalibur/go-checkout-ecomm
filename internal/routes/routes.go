@@ -6,23 +6,26 @@ import (
 )
 
 func SetupRoutes(
-	r *mux.Router,
+	router *mux.Router,
 	productHandler *handlers.ProductHandler,
 	cartHandler *handlers.CartHandler,
-	adminHandler *handlers.AdminHandler,
+	orderHandler *handlers.OrderHandler,
+	promoHandler *handlers.PromoHandler,
 ) {
-	// Product route
-	r.HandleFunc("/api/products", productHandler.GetProducts).Methods("GET")
+	// Product routes
+	router.HandleFunc("/api/products", productHandler.GetProducts).Methods("GET", "OPTIONS")
 
 	// Cart routes
-	r.HandleFunc("/api/cart/add", cartHandler.AddToCart).Methods("POST")
-	r.HandleFunc("/api/cart", cartHandler.GetCart).Methods("GET")
-	r.HandleFunc("/api/cart/{itemId}", cartHandler.RemoveFromCart).Methods("DELETE")
-	r.HandleFunc("/api/cart/{itemId}/quantity", cartHandler.UpdateCartItemQuantity).Methods("PUT")
-	r.HandleFunc("/api/cart/checkout", cartHandler.Checkout).Methods("POST")
+	router.HandleFunc("/api/cart", cartHandler.GetCart).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/cart/add", cartHandler.AddToCart).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/cart/{productId}", cartHandler.UpdateCartItem).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/api/cart/{productId}", cartHandler.RemoveFromCart).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/api/cart/checkout", cartHandler.Checkout).Methods("POST", "OPTIONS")
 
-	// Admin routes
-	r.HandleFunc("/api/admin/discount/active", adminHandler.GetActiveDiscountCode).Methods("GET")
-	r.HandleFunc("/api/admin/stats", adminHandler.GetStats).Methods("GET")
-	r.HandleFunc("/api/admin/discount", adminHandler.GenerateDiscountCode).Methods("POST")
+	// Order routes
+	router.HandleFunc("/api/orders", orderHandler.GetUserOrders).Methods("GET", "OPTIONS")
+
+	// Promo code routes
+	router.HandleFunc("/api/admin/discount", promoHandler.GeneratePromoCode).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/admin/discount/active", promoHandler.GetActivePromoCode).Methods("GET", "OPTIONS")
 }
