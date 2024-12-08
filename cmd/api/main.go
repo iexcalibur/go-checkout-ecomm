@@ -4,11 +4,11 @@ import (
 	"log"
 
 	"github.com/iexcalibur/backend/internal/config"
+	"github.com/iexcalibur/backend/internal/core/middleware"
 	"github.com/iexcalibur/backend/internal/data"
 	"github.com/iexcalibur/backend/internal/handlers"
 	"github.com/iexcalibur/backend/internal/routes"
 	"github.com/iexcalibur/backend/internal/storage"
-	"github.com/rs/cors"
 )
 
 func main() {
@@ -34,15 +34,10 @@ func main() {
 		promoHandler,
 	)
 
-	// Add CORS middleware
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
-	})
-
-	// Use CORS handler in server
-	server.SetHandler(c.Handler(server.Router()))
+	// Apply middleware
+	router := server.Router()
+	router.Use(middleware.Logger)
+	router.Use(middleware.CORS)
 
 	// Start server
 	if err := server.Start(); err != nil {

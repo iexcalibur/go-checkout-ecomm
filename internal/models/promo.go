@@ -9,6 +9,7 @@ type PromoCode struct {
 	DiscountRate float64    `json:"discount_rate"`
 	Used         bool       `json:"used"`
 	GeneratedAt  time.Time  `json:"generated_at"`
+	IsAutomatic  bool       `json:"is_automatic"`
 	Expiry       *time.Time `json:"expiry,omitempty"`
 }
 
