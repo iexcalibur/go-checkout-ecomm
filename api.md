@@ -1,47 +1,10 @@
 # API Documentation
 
-This document provides detailed information about the API endpoints related to product and cart functionality. The examples include requests and responses for fetching products, adding items to the cart, retrieving cart details, updating quantities, and other operations.
+This document provides detailed information about the API endpoints related to the cart functionality. The examples include requests and responses for adding, updating, retrieving, and clearing cart items.
 
 ---
 
-## 1. Retrieve List of Products
-
-### Endpoint
-
-`GET /api/product`
-
-### Description
-
-Retrieves a complete list of available products, including details such as name, price, description, and availability status.
-
-### Example Request
-
-`GET http://localhost:8080/api/product`
-
-### Example Response
-
-```json
-[
-    {
-        "product_id": "1",
-        "name": "Spy x Family Tshirt",
-        "price": 26,
-        "description": "High-quality T-shirt inspired by Spy x Family",
-        "availability": true
-    },
-    {
-        "product_id": "2",
-        "name": "One Piece Hoodie",
-        "price": 40,
-        "description": "Comfortable hoodie with One Piece designs",
-        "availability": true
-    }
-]
-```
-
----
-
-## 2. Add Product to Cart
+## 1. Add Product to Cart
 
 ### Endpoint
 
@@ -66,7 +29,7 @@ Adds a product to the user's cart with the specified quantity and product detail
 
 ---
 
-## 3. Retrieve Cart Details
+## 2. Retrieve Cart Details
 
 ### Endpoint
 
@@ -106,7 +69,7 @@ Retrieves the current state of the user's cart, including all items, total price
 
 ---
 
-## 4. Update Cart Item Quantity
+## 3. Update Cart Item Quantity
 
 ### Endpoint
 
@@ -151,7 +114,7 @@ Updates the quantity of a specific product in the user's cart and recalculates t
 
 ---
 
-## 5. Clear a Specific Cart Item
+## 4. Clear a Specific Cart Item
 
 ### Endpoint
 
@@ -183,7 +146,7 @@ Removes the specified product from the user's cart and updates the cart details 
 
 ---
 
-## 6. Checkout Cart
+## 5. Checkout Cart
 
 ### Endpoint
 
@@ -224,7 +187,7 @@ Finalizes the user's cart and prepares it for processing. Returns the details of
 
 ---
 
-## 7. Retrieve Order History
+## 6. Retrieve Order History
 
 ### Endpoint
 
@@ -241,4 +204,122 @@ Finalizes the user's cart and prepares it for processing. Returns the details of
 ### Description
 
 Retrieves the order history for the specified user.
+
+---
+
+## 7. Promo Code System Documentation
+
+### Generate Promo Code
+
+#### Endpoint
+
+`POST /api/admin/discount`
+
+#### Request Body
+
+```json
+{
+    "code": "SUMMER25",
+    "discount_rate": 25.0
+}
+```
+
+#### Example Response
+
+```json
+{
+    "id": "uuid",
+    "code": "SUMMER25",
+    "discount_rate": 25.0,
+    "used": false,
+    "generated_at": "2024-03-21T12:34:56Z"
+}
+```
+
+### Description
+
+Creates a new promo code with a unique code, custom discount rate, and tracks its status.
+
+---
+
+### Automatic Promo Code Generation
+
+- Promo codes are automatically generated after every 5th order.
+- Format: PROMOwith random characters.
+- Discount rate: Fixed at 10%.
+- Marked as an automatic promo.
+
+---
+
+### Get Active Promo Code
+
+#### Endpoint
+
+`GET /api/admin/discount/active`
+
+#### Example Response
+
+```json
+{
+    "id": "uuid",
+    "code": "PROMO0JJHA",
+    "discount_rate": 10.0,
+    "used": false,
+    "generated_at": "2024-03-21T12:34:56Z",
+    "is_automatic": true,
+    "message": "Congratulations! You've earned this promo code after 5 orders!"
+}
+```
+
+#### Description
+
+- Returns the most recent unused promo code.
+- Prioritizes automatic promos over manual ones.
+- Returns a 404 if no active promo codes are found.
+
+---
+
+### Use Promo Code in Checkout
+
+#### Endpoint
+
+`POST /api/cart/checkout`
+
+#### Request Body
+
+```json
+{
+    "userId": "user123",
+    "discountCode": "SUMMER25"
+}
+```
+
+#### Example Response
+
+```json
+{
+    "id": "order-uuid",
+    "user_id": "user123",
+    "items": [...],
+    "total_amount": 156.0,
+    "discount_code": "SUMMER25",
+    "discount_amount": 39.0,
+    "created_at": "2024-03-21T12:34:56Z"
+}
+```
+
+#### Description
+
+- Validates promo code existence and usage status.
+- Applies the discount to the cart total.
+- Marks the promo code as used after successful checkout.
+
+---
+
+### Notes
+
+- **Manual Promo Codes**: Custom code and discount rate.
+- **Automatic Promos**: Generated after every 5th order with a 10% discount.
+- Promo codes can only be used once.
+- The system maintains the order count for automatic promo generation.
 
