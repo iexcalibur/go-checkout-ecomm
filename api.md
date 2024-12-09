@@ -244,7 +244,7 @@ Creates a new promo code with a unique code, custom discount rate, and tracks it
 
 ### Automatic Promo Code Generation
 
-- Promo codes are automatically generated after every 5th order.
+- Promo codes are automatically generated after every 3rd order.
 - Format: PROMOwith random characters.
 - Discount rate: Fixed at 10%.
 - Marked as an automatic promo.
@@ -319,7 +319,7 @@ Creates a new promo code with a unique code, custom discount rate, and tracks it
 ### Notes
 
 - **Manual Promo Codes**: Custom code and discount rate.
-- **Automatic Promos**: Generated after every 5th order with a 10% discount.
+- **Automatic Promos**: Generated after every 3rd order with a 10% discount.
 - Promo codes can only be used once.
 - The system maintains the order count for automatic promo generation.
 
